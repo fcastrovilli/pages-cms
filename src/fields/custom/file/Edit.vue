@@ -79,12 +79,8 @@
           :owner="repoStore.owner"
           :repo="repoStore.repo"
           :branch="repoStore.branch"
-          :root="
-            props.field.options?.input ?? repoStore.config.object.media?.input
-          "
-          :defaultPath="
-            props.field.options?.path ?? repoStore.config.object.media?.path
-          "
+          :root="props.field.options?.input ?? repoStore.config.object.media?.input"
+          :defaultPath="props.field.options?.path ?? repoStore.config.object.media?.path"
           :filterByExtensions="props.field.options?.extensions"
           :isSelectable="true"
           :selected="selectedFile"
@@ -101,18 +97,27 @@
       </footer>
     </template>
   </Modal>
+  <!-- Validation errors -->
+  <ul v-if="errors.length" class="mt-2 text-sm text-red-500 dark:text-red-400">
+    <li v-for="error in errors" :key="error" class="flex gap-x-1 items-center">
+      <Icon name="Ban" class="h-3 w-3 stroke-[2.5]"/>
+      {{ error }}
+    </li>
+  </ul>
 </template>
 
 <script setup>
 import { ref, computed, inject, watch, onMounted } from "vue";
 import Draggable from "vuedraggable";
 import useSchema from "@/composables/useSchema";
+import useFieldValidation from "@/composables/useFieldValidation";
 import FileBrowser from "@/components/FileBrowser.vue";
 import Icon from "@/components/utils/Icon.vue";
 import Modal from "@/components/utils/Modal.vue";
 import FilePreview from "@/components/file/FilePreview.vue";
 
 const { sanitizeObject } = useSchema();
+const { validateRequired, validateListRange } = useFieldValidation();
 
 const emit = defineEmits(["update:modelValue"]);
 
@@ -160,6 +165,7 @@ const props = defineProps({
 const internalModelValue = ref([]);
 const fileSelection = ref([]);
 const selectFileModal = ref(null);
+const errors = ref([]);
 
 // Always show current selection in browser
 watch(
@@ -234,13 +240,40 @@ function addFile() {
 }
 
 function setFiles() {
-  const value = props.modelValue;
-  if (value) {
-    internalModelValue.value = Array.isArray(value) ? [...value] : [value];
+  if (props.modelValue) {
+    if (Array.isArray(props.modelValue)) {
+      internalModelValue.value = props.modelValue;
+    } else {
+      internalModelValue.value = [props.modelValue];
+    }
   } else {
     internalModelValue.value = [];
   }
 }
+
+const validate = () => {
+  errors.value = [];
+  let allErrors = [];
+
+  // Check if field is required
+  const requiredErrors = validateRequired(props.field, internalModelValue.value);
+  if (requiredErrors.length) {
+    allErrors = allErrors.concat(requiredErrors);
+  }
+
+  // If it's a list, validate list constraints
+  if (props.field.list) {
+    const listErrors = validateListRange(props.field, internalModelValue.value);
+    if (listErrors.length) {
+      allErrors = allErrors.concat(listErrors);
+    }
+  }
+
+  errors.value = allErrors;
+  return allErrors;
+};
+
+defineExpose({ validate });
 
 onMounted(() => {
   setFiles();

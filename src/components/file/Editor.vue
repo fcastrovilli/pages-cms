@@ -70,7 +70,11 @@
             :sha="sha"
           />
         </template>
-        <button class="btn-primary" @click.prevent="save" :disabled="(sha && !isModelChanged) || (status === 'validating-config')">
+        <button 
+          class="btn-primary" 
+          @click.prevent="save" 
+          :disabled="!canSave || status === 'validating-config'"
+        >
           Save
           <div class="spinner-white-sm" v-if="status == 'saving'"></div>
         </button>
@@ -152,7 +156,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed, inject } from 'vue';
+import { ref, onMounted, watch, computed, inject, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Base64 } from 'js-base64';
 import { debounce } from 'lodash';
@@ -202,7 +206,14 @@ const file = ref(null);
 const sha = ref(null);
 const model = ref(null);
 const initialModel = ref(null);
-const isModelChanged = computed(() => JSON.stringify(sanitizeObject(model.value)) !== JSON.stringify(sanitizeObject(initialModel.value)));
+const isModelChanged = computed(() => {
+  // Handle null values
+  if (model.value === null && initialModel.value === null) return false;
+  if (model.value === null || initialModel.value === null) return true;
+  
+  // Compare sanitized models
+  return JSON.stringify(sanitizeObject(model.value)) !== JSON.stringify(sanitizeObject(initialModel.value));
+});
 const currentPath = ref(null);
 const newPath = ref(null);
 const folder = computed(() => {
@@ -244,6 +255,31 @@ const displayDescription = computed(() => {
   }
   
   return renderDescription(markdownDescription);
+});
+
+const validationErrors = ref([]);
+
+const updateValidation = () => {
+  console.log('Running validation...');
+  // Skip validation if model is null
+  if (model.value === null) {
+    console.log('Model is null, skipping validation');
+    validationErrors.value = [];
+    return;
+  }
+  
+  // Run validation with field refs if available
+  const errors = fieldRefs.value.length > 0 ? validateFields() : [];
+  console.log('Validation errors:', errors);
+  validationErrors.value = errors;
+};
+
+const canSave = computed(() => {
+  console.log('Checking canSave...');
+  console.log('isModelChanged:', isModelChanged.value);
+  console.log('validationErrors:', validationErrors.value);
+  // Only allow saving if model has changed and there are no validation errors
+  return isModelChanged.value && validationErrors.value.length === 0;
 });
 
 const createSingleFile = async (path) => {
@@ -363,28 +399,44 @@ const setEditor = async () => {
     model.value = content;
   }
 
-  
-
   initialModel.value = JSON.parse(JSON.stringify(model.value));
   setDisplayTitle();
   status.value = '';
+  
+  // Initialize validation after model is set
+  nextTick(() => {
+    if (fieldRefs.value.length > 0) {
+      updateValidation();
+    }
+  });
 };
 
 const validateFields = () => {
   status.value = 'validating';
   let errors = [];
-  fieldRefs.value.forEach(fieldRef => {
-    errors.push(...fieldRef.validate());
+  
+  // Ensure all fields are validated, even if they haven't been interacted with
+  const fields = fieldRefs.value.filter(ref => ref && typeof ref.validate === 'function');
+  
+  // Validate all fields and collect errors
+  fields.forEach(fieldRef => {
+    const fieldErrors = fieldRef.validate();
+    if (fieldErrors && fieldErrors.length > 0) {
+      errors = errors.concat(fieldErrors);
+    }
   });
-  status.value = '';
 
+  // Log validation results
+  console.log('Field validation results:', errors);
+  
+  status.value = '';
   return errors;
 };
 
 const save = async () => {
   // We run validation first
-  const validationErrors = validateFields();
-  if (validationErrors.length > 0) {
+  updateValidation();
+  if (validationErrors.value.length > 0) {
     notifications.notify('Uh-oh! Some of your fields have issues. Please check for errors.', 'error');
     return;
   }
@@ -449,6 +501,7 @@ const save = async () => {
 };
 
 onMounted(async () => {
+  console.log('Editor mounted');
   await setEditor();
 });
 
@@ -480,4 +533,22 @@ watch(() => model.value, (newValue, oldValue) => {
   }
 }, { deep: true });
 
+// Watch for changes in model to validate all fields
+watch(() => model.value, () => {
+  console.log('Model changed...');
+  // Always run validation when model changes
+  nextTick(() => {
+    updateValidation();
+  });
+}, { deep: true });
+
+// Watch for changes in fieldRefs to validate when they're ready
+watch(() => fieldRefs.value.length, () => {
+  console.log('Field refs changed:', fieldRefs.value.length);
+  if (fieldRefs.value.length > 0) {
+    nextTick(() => {
+      updateValidation();
+    });
+  }
+});
 </script>

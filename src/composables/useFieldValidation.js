@@ -5,8 +5,19 @@ const { sanitizeObject } = useSchema();
 export default function useFieldValidation() {
   const validateRequired = (schema, value) => {
     let errors = [];
-    if (schema.required && !sanitizeObject(value)) {
-      errors.push('This field is required.');
+    if (schema.required) {
+      const sanitized = sanitizeObject(value);
+      // Check if the value is empty after sanitization
+      const isEmpty = 
+        sanitized === null || 
+        sanitized === undefined || 
+        sanitized === '' || 
+        (Array.isArray(sanitized) && sanitized.length === 0) ||
+        (typeof sanitized === 'object' && Object.keys(sanitized).length === 0);
+        
+      if (isEmpty) {
+        errors.push('This field is required.');
+      }
     }
     return errors;
   };
