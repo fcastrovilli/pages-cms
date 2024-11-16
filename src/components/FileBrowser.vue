@@ -163,6 +163,7 @@
                     : '',
                   isSelectable ? 'cursor-pointer' : '',
                 ]"
+                @click="isSelectable && selectToggle(item)"
               >
                 <input
                   v-if="isSelectable"
