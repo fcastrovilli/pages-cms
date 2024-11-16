@@ -23,12 +23,25 @@ Example configuration:
   label: Document Attachment
   type: file
   options:
-    multiple: true # Allow multiple files (optional, defaults to false)
-    path: /documents # Custom upload path (optional)
+    multiple: true     # Allow multiple files (optional, defaults to false)
+    path: /documents   # Custom upload path (optional)
+    extensions: [".pdf", ".doc", ".docx"]  # Limit file types (optional)
+    input: /static/uploads  # Input directory for files (optional)
+    output: /uploads     # Public URL path prefix (optional)
+    list: true          # Use list view instead of grid (optional)
+    required: true      # Make the field required (optional)
 ```
 
-Features:
+Available Options:
+- `multiple`: Boolean, allows multiple file uploads (default: false)
+- `path`: String, custom upload directory path relative to media folder
+- `extensions`: Array, limit file types (optional)
+- `input`: String, input directory for files (optional)
+- `output`: String, public URL path prefix (optional)
+- `list`: Boolean, use list view instead of grid view (default: false)
+- `required`: Boolean, make the field required (default: false)
 
+Features:
 - Supports any file type
 - Single or multiple file uploads
 - Custom upload paths
@@ -36,6 +49,33 @@ Features:
 - Drag and drop support
 - File size display
 - Grid and list view options
+
+#### Media Settings and Image Optimization
+
+This fork includes enhanced media settings for image optimization. Configure these in your `.pages.yml` file:
+
+```yaml
+media:
+  folder: static/uploads    # Base media folder
+  public_folder: /uploads   # Public URL path
+  optimize:
+    enabled: true          # Enable image optimization
+    maxWidth: 1920        # Maximum image width
+    maxHeight: 1080       # Maximum image height
+    quality: 0.85        # WebP quality (0-1)
+```
+
+The image optimization settings are applied during upload and will:
+- Automatically convert images to WebP format
+- Resize images while maintaining aspect ratio
+- Optimize quality for web use
+- Preserve original filenames with .webp extension
+
+Available Image Options:
+- `enabled`: Boolean, enable image optimization (default: true)
+- `maxWidth`: Number, maximum image width
+- `maxHeight`: Number, maximum image height
+- `quality`: Number, WebP quality (0-1)
 
 #### Important Note About Date Fields
 
