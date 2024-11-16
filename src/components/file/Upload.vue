@@ -41,26 +41,108 @@ async function processFiles(files) {
   status.value = '';
 }
 
+async function processImage(file) {
+  // Create an image element
+  const img = document.createElement('img');
+  const imageUrl = URL.createObjectURL(file);
+  
+  return new Promise((resolve, reject) => {
+    img.onload = async () => {
+      try {
+        // Calculate new dimensions
+        const MAX_WIDTH = 1920;
+        const MAX_HEIGHT = 1080;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+          if (width / height > MAX_WIDTH / MAX_HEIGHT) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          } else {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        
+        // Draw and compress image
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convert to WebP
+        const webpData = canvas.toDataURL('image/webp', 0.85);
+        
+        // Convert base64 to Blob
+        const byteString = atob(webpData.split(',')[1]);
+        const mimeString = webpData.split(',')[0].split(':')[1].split(';')[0];
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+        
+        const blob = new Blob([ab], { type: mimeString });
+        const originalName = file.name.replace(/\.[^/.]+$/, '');
+        const newFile = new File([blob], `${originalName}.webp`, { type: 'image/webp' });
+        
+        URL.revokeObjectURL(imageUrl);
+        resolve(newFile);
+      } catch (error) {
+        URL.revokeObjectURL(imageUrl);
+        reject(error);
+      }
+    };
+    
+    img.onerror = () => {
+      URL.revokeObjectURL(imageUrl);
+      reject(new Error('Failed to load image'));
+    };
+    
+    img.src = imageUrl;
+  });
+}
+
 const upload = async (file) => {
   if (file) {
-    let content = await readFileContent(file);
-    if (content) {
-      const notificationId = notifications.notify(`Uploading "${file.name}".`, 'processing', { delay: 0 });
-      content = content.replace(/^(.+,)/, ''); // We strip out the info at the beginning of the file (mime type + encoding)
-      const fullPath = props.path ? `${props.path}/${file.name}` : file.name;
-      const data = await github.saveFile(props.owner, props.repo, props.branch, fullPath, content, null, true);
-      notifications.close(notificationId);
-      if (data) {
-        if (data.content.path === fullPath) {
-          notifications.notify(`File '${file.name}' successfully uploaded.`, 'success');
-        } else {
-          notifications.notify(`File '${file.name}' successfully uploaded but renamed to '${data.content.name}'.`, 'success');
-        }
-        emits('uploaded', data);
-      } else {
-        notifications.notify(`File upload failed.`, 'error');
-        emits('error', data);
+    const notificationId = notifications.notify(`Processing "${file.name}"...`, 'processing', { delay: 0 });
+    
+    try {
+      let processedFile = file;
+      
+      // Process image files
+      if (file.type.startsWith('image/')) {
+        processedFile = await processImage(file);
       }
+
+      let content = await readFileContent(processedFile);
+      if (content) {
+        content = content.replace(/^(.+,)/, '');
+        const fullPath = props.path ? `${props.path}/${processedFile.name}` : processedFile.name;
+        const data = await github.saveFile(props.owner, props.repo, props.branch, fullPath, content, null, true);
+        notifications.close(notificationId);
+        
+        if (data) {
+          if (data.content.path === fullPath) {
+            notifications.notify(`File '${processedFile.name}' successfully uploaded.`, 'success');
+          } else {
+            notifications.notify(`File '${processedFile.name}' successfully uploaded but renamed to '${data.content.name}'.`, 'success');
+          }
+          emits('uploaded', data);
+        } else {
+          notifications.notify(`File upload failed.`, 'error');
+          emits('error', data);
+        }
+      }
+    } catch (error) {
+      notifications.close(notificationId);
+      notifications.notify(`Error processing file: ${error.message}`, 'error');
+      emits('error', error);
     }
   }
 };
@@ -70,7 +152,7 @@ const readFileContent = (file) => {
     const reader = new FileReader();
     reader.onload = (e) => resolve(e.target.result);
     reader.onerror = (e) => reject(e);
-    reader.readAsDataURL(file); // Reads the file as base64 encoded string
+    reader.readAsDataURL(file);
   });
 };
 
