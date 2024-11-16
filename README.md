@@ -26,7 +26,7 @@ There are two ways to handle multiple files:
   type: file
   options:
     multiple: true  # Enable grid view for multiple files
-    extensions: [".pdf", ".doc", ".docx"]
+    extensions: ["pdf", "doc", "docx"]
 ```
 This creates a grid view where you can:
 - Select multiple files at once
@@ -40,7 +40,7 @@ This creates a grid view where you can:
   type: file
   list: true  # Enable list view with individual file fields
   options:
-    extensions: [".pdf", ".doc"]
+    extensions: ["pdf", "doc"]
 ```
 This creates a list of individual file fields that:
 - Can be reordered using drag and drop
@@ -59,7 +59,7 @@ Choose `multiple: true` when you need a simple way to manage a collection of rel
   options:
     multiple: true # Allow multiple files (optional)
     path: /documents # Custom upload path (optional)
-    extensions: [".pdf", ".doc", ".docx"] # Limit file types (optional)
+    extensions: ["pdf", "doc", "docx"] # Limit file types (optional)
     input: /static/uploads # Input directory for files (optional)
     output: /uploads # Public URL path prefix (optional)
     list: true # Use list view instead of grid (optional)
