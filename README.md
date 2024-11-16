@@ -86,6 +86,107 @@ Features:
 - File size display
 - Grid and list view options
 
+#### Media Path Configuration
+
+This fork includes enhanced media path handling that allows you to configure both input paths (where files are stored in your repository) and output paths (how they appear in your final website). This can be configured both globally and per-field.
+
+##### Global Media Configuration
+
+Configure global media paths in your `.pages.yml`:
+
+```yaml
+media:
+  input: static/media  # Where files are stored in your repo
+  output: /media      # How paths appear in your content files
+  optimize:
+    enabled: true     # Enable image optimization
+    maxWidth: 1920    # Maximum image width
+    maxHeight: 1080   # Maximum image height
+    quality: 0.80     # WebP quality (0-1)
+```
+
+##### Field-Specific Configuration
+
+You can override the global media paths for specific fields:
+
+```yaml
+fields:
+  - name: image
+    label: 'Main Image'
+    type: image
+    options:
+      input: static/media/images   # Override global input path
+      output: /media/images        # Override global output path
+  
+  - name: attachment
+    label: 'Document'
+    type: file
+    options:
+      input: static/media/docs     # Different path for documents
+      output: /media/docs          # Different public URL for documents
+```
+
+##### Path Transformation Examples
+
+The system automatically transforms paths between input and output formats:
+
+1. **Basic Image Path**:
+   - Input (in repo): `static/media/photo.jpg`
+   - Output (in content): `/media/photo.jpg`
+
+2. **Nested Image Path**:
+   - Input: `static/media/images/blog/photo.jpg`
+   - Output: `/media/images/blog/photo.jpg`
+
+3. **Field-Specific Path**:
+   ```yaml
+   # Field configuration
+   - name: avatar
+     type: image
+     options:
+       input: static/media/profiles
+       output: /media/profiles
+   ```
+   - Input: `static/media/profiles/user.jpg`
+   - Output: `/media/profiles/user.jpg`
+
+##### Path Format Notes
+
+- Paths are normalized to handle various formats:
+  - Leading slashes are optional in configuration
+  - Trailing slashes are automatically removed
+  - Multiple consecutive slashes are normalized
+  - Both forward and backward slashes are supported
+
+These examples all work the same:
+```yaml
+media:
+  input: static/media/
+  output: /media
+
+# or
+media:
+  input: static/media
+  output: media/
+
+# or
+media:
+  input: static\media\\\
+  output: /media/
+```
+
+##### Path Resolution Priority
+
+1. Field-specific paths take precedence if configured
+2. Falls back to global media paths if field-specific paths aren't set
+3. Uses empty string as fallback if no paths are configured
+
+This flexible path configuration allows you to:
+- Organize media files logically in your repository
+- Generate clean, SEO-friendly URLs in your final website
+- Have different paths for different types of media
+- Maintain compatibility with various static site generators
+
 #### Media Settings and Image Optimization
 
 This fork includes enhanced media settings for image optimization. Configure these in your `.pages.yml` file:

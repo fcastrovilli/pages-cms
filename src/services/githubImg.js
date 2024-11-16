@@ -94,26 +94,67 @@ const relativeToRawUrls = async (owner, repo, branch, html, isPrivate = false, d
   return newHtml;
 }
 
+// Normalize a path by:
+// 1. Removing multiple consecutive slashes
+// 2. Removing trailing slashes
+// 3. Optionally adding/removing leading slash
+const normalizePath = (path, { leadingSlash = false } = {}) => {
+  if (!path) return '';
+  
+  // Remove multiple consecutive slashes and normalize to forward slashes
+  let normalized = path.replace(/\\/g, '/').replace(/\/+/g, '/');
+  
+  // Remove trailing slash
+  normalized = normalized.replace(/\/$/, '');
+  
+  // Handle leading slash
+  if (leadingSlash && !normalized.startsWith('/')) {
+    normalized = '/' + normalized;
+  } else if (!leadingSlash && normalized.startsWith('/')) {
+    normalized = normalized.substring(1);
+  }
+  
+  return normalized;
+};
+
 // Swaps path prefixes (used for input/output path conversion).
 const swapPrefix = (path, from, to, relative = false) => {
-  // TODO: do I need to handle encoding/decoding?
+  // Return early if any of the inputs are null/undefined
   if (path == null || from == null || to == null) return path;
-  let newPath;
-  if (from === to) {
-    newPath = path;
-  } else if (path.startsWith(from) && !(from == '/' && path.startsWith('//')) && !path.startsWith('http://') && !path.startsWith('https://') && !path.startsWith('data:image/')) {
-    if (from === '' && to !== '/' && !path.startsWith('/')) {
-      newPath = `${to}/${path}`;
-    } else {
-      newPath = path.replace(from, to);
-    }
-  } else {
-    // TODO: we return the original path if we don't know what to do with it (e.g. path is outside of media path). Need to check this doesn't have unintended consequences.
+  
+  // Normalize paths
+  const normalizedPath = normalizePath(path);
+  const normalizedFrom = normalizePath(from);
+  const normalizedTo = normalizePath(to);
+  
+  // Skip external URLs and data URIs
+  if (normalizedPath.startsWith('http://') || 
+      normalizedPath.startsWith('https://') || 
+      normalizedPath.startsWith('data:image/')) {
     return path;
   }
-  if (newPath && newPath.startsWith('/') && relative) newPath = newPath.substring(1);
 
-  return newPath;
+  let newPath;
+  
+  // If prefixes are the same, no transformation needed
+  if (normalizedFrom === normalizedTo) {
+    newPath = normalizedPath;
+  }
+  // Handle the case where input path starts with the 'from' prefix
+  else if (normalizedPath.startsWith(normalizedFrom)) {
+    newPath = normalizedPath.replace(normalizedFrom, normalizedTo);
+  }
+  // Handle empty 'from' prefix case
+  else if (normalizedFrom === '' && !normalizedPath.startsWith('/')) {
+    newPath = `${normalizedTo}/${normalizedPath}`;
+  }
+  // If none of the above conditions match, return original path
+  else {
+    return path;
+  }
+
+  // Add or remove leading slash based on the 'relative' parameter
+  return normalizePath(newPath, { leadingSlash: !relative });
 }
 
 // Swaps path prefixes (used for input/output path conversion) in an HTML string.
@@ -155,4 +196,4 @@ const getImgSrcs = (html) => {
   return [...html.matchAll(regex)];
 }
 
-export default { state, getRelativeUrl, getRawUrl, relativeToRawUrls, rawToRelativeUrls, swapPrefix, htmlSwapPrefix };
+export default { state, getRelativeUrl, getRawUrl, relativeToRawUrls, rawToRelativeUrls, swapPrefix, htmlSwapPrefix, normalizePath };

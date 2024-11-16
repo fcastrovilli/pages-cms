@@ -163,6 +163,7 @@ import { debounce } from 'lodash';
 import moment from 'moment';
 import notifications from '@/services/notifications';
 import github from '@/services/github';
+import githubImg from '@/services/githubImg';
 import config from '@/services/config';
 import serialization from '@/services/serialization';
 import useSchema from '@/composables/useSchema';
@@ -431,6 +432,42 @@ const save = async () => {
     if (['yaml', 'json', 'toml'].includes(mode.value) && schema.value.list) {
       contentObject = contentObject.listWrapper;
     }
+    
+    // Transform image paths from input format to output format before saving
+    const transformImagePaths = (obj) => {
+      for (const field of schema.value.fields) {
+        if ((field.type === 'image' || field.type === 'file') && obj[field.name]) {
+          // Get global media settings
+          const globalInput = repoStore.config.object.media?.input ?? '';
+          const globalOutput = repoStore.config.object.media?.output ?? '';
+          
+          // Use field-specific settings if available, otherwise fallback to global media settings
+          const prefixInput = field.options?.input ?? globalInput;
+          const prefixOutput = field.options?.output ?? globalOutput;
+          
+          // Determine if output should be relative based on the output prefix
+          const makeRelative = !githubImg.normalizePath(prefixOutput).startsWith('/');
+          
+          if (Array.isArray(obj[field.name])) {
+            obj[field.name] = obj[field.name].map(path => {
+              const normalizedPath = githubImg.normalizePath(path);
+              const normalizedInput = githubImg.normalizePath(prefixInput);
+              // Transform from input to output format
+              return normalizedPath.startsWith(normalizedInput) ? 
+                githubImg.swapPrefix(path, prefixInput, prefixOutput, makeRelative) : path;
+            });
+          } else {
+            const normalizedPath = githubImg.normalizePath(obj[field.name]);
+            const normalizedInput = githubImg.normalizePath(prefixInput);
+            // Transform from input to output format
+            obj[field.name] = normalizedPath.startsWith(normalizedInput) ? 
+              githubImg.swapPrefix(obj[field.name], prefixInput, prefixOutput, makeRelative) : obj[field.name];
+          }
+        }
+      }
+    };
+    
+    transformImagePaths(contentObject);
     // Sanitize the object and stringify it
     contentObject = sanitizeObject(contentObject);
 

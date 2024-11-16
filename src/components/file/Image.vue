@@ -21,12 +21,32 @@ const props = defineProps({
 
 const rawUrl = ref(null);
 
+const getInputPath = (outputPath) => {
+  if (!outputPath) return null;
+  
+  // Get global media settings
+  const globalInput = repoStore.config.object.media?.input ?? '';
+  const globalOutput = repoStore.config.object.media?.output ?? '';
+  
+  // Normalize paths
+  const normalizedPath = githubImg.normalizePath(outputPath);
+  const normalizedOutput = githubImg.normalizePath(globalOutput);
+  
+  // Transform from output path back to input path
+  if (normalizedPath.startsWith(normalizedOutput)) {
+    return githubImg.swapPrefix(outputPath, globalOutput, globalInput, false);
+  }
+  return outputPath;
+};
+
 onMounted(async () => {
-  rawUrl.value = await githubImg.getRawUrl(repoStore.owner, repoStore.repo, repoStore.branch, props.path, repoStore.details.private);
+  const inputPath = getInputPath(props.path);
+  rawUrl.value = await githubImg.getRawUrl(repoStore.owner, repoStore.repo, repoStore.branch, inputPath, repoStore.details.private);
 });
 
 watch(() => props.path, async (newPath) => {
   rawUrl.value = null;
-  rawUrl.value = await githubImg.getRawUrl(repoStore.owner, repoStore.repo, repoStore.branch, newPath, repoStore.details.private);
+  const inputPath = getInputPath(newPath);
+  rawUrl.value = await githubImg.getRawUrl(repoStore.owner, repoStore.repo, repoStore.branch, inputPath, repoStore.details.private);
 });
 </script>
