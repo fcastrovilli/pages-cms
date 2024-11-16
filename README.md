@@ -9,7 +9,52 @@ This fork of Pages CMS includes several enhancements and new features:
 - **Enhanced Image Handling**: Improved compatibility and support for image lists
 - **UI Improvements**: Fixed list and grid views for better user experience
 - **Field Validation**: Enhanced validation for files and images
-- **Performance**: Various optimizations and removal of unnecessary logging
+
+### New Features Documentation
+
+#### File Field
+
+The `file` field type allows you to manage file uploads in your content. Unlike the `image` field, it supports any file type and provides additional functionality for file management.
+
+Example configuration:
+
+```yaml
+- name: attachment
+  label: Document Attachment
+  type: file
+  options:
+    multiple: true # Allow multiple files (optional, defaults to false)
+    path: /documents # Custom upload path (optional)
+```
+
+Features:
+
+- Supports any file type
+- Single or multiple file uploads
+- Custom upload paths
+- File preview when possible
+- Drag and drop support
+- File size display
+- Grid and list view options
+
+#### Important Note About Date Fields
+
+The official documentation for the date field at pagescms.org contains some inaccuracies. The date field in this fork uses Moment.js instead of date-fns, which means:
+
+- The format string should follow [Moment.js format patterns](https://momentjs.com/docs/#/displaying/format/)
+- Example format: `DD/MM/YYYY` (not `dd/MM/yyyy`)
+- For time inclusion: `DD/MM/YYYY HH:mm` (not `dd-MM-yyyy HH:mm`)
+
+Example configuration:
+
+```yaml
+- name: published_at
+  label: Publication Date
+  type: date
+  options:
+    format: DD/MM/YYYY
+    time: true
+```
 
 [Pages CMS](https://pagescms.org) is an Open Source Content Management System built for static websites (Jekyll, Next.js, VuePress, Hugo, etc).
 
@@ -52,9 +97,9 @@ To get a local version up and running:
 
 1. **Install dependencies**: `npm install`.
 1. **Create a GitHub OAuth app**: 0n GitHub, go to [your Developer Settings](https://github.com/settings/developers) and [create a New OAuth App](https://github.com/settings/applications/new) (or alternatively create one for one of your organizations). You can use the following settings for your development environment:
-    - Application name: `Pages CMS (dev)`
-    - Homepage URL: `https://pagescms.org`
-    - Authorization callback URL: `http://localhost:8788/auth/callback`
+   - Application name: `Pages CMS (dev)`
+   - Homepage URL: `https://pagescms.org`
+   - Authorization callback URL: `http://localhost:8788/auth/callback`
 1. **Create a file for environment variables**: copy `.dev.vars.exmple` into `.dev.vars` and replace `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` with the values you got for your GitHub OAuth app. You shouldn't have to modify `BASE_URL`.
 1. **Run it**: `npm run dev`. This should [run the app locally with Wrangler](https://developers.cloudflare.com/pages/functions/local-development/) (allowing us to run the serverless functions locally).
 1. **Visit [localhost:8788](http://localhost:8788)**.
@@ -63,17 +108,17 @@ To get a local version up and running:
 
 1. **Prerequisite**: you'll need a [Cloudflare](https://cloudflare.com) account (it's free). Once you have one:
 1. **Create a [Cloudflare Pages](https://developers.cloudflare.com/pages/) app**:
-    1. From your account dashboard, go to `Workers & Pages`, then click on `Create application` and select the `Pages` tab.
-    1. From there you can connect your GitHub account and select the repo you want to deploy (assuming you've [forked pages-cms/pages-cms](https://github.com/pages-cms/pages-cms/fork)).
-    1. Cloudflare will give you a public URL (e.g. https://pages-cms-123.pages.dev).
+   1. From your account dashboard, go to `Workers & Pages`, then click on `Create application` and select the `Pages` tab.
+   1. From there you can connect your GitHub account and select the repo you want to deploy (assuming you've [forked pages-cms/pages-cms](https://github.com/pages-cms/pages-cms/fork)).
+   1. Cloudflare will give you a public URL (e.g. https://pages-cms-123.pages.dev).
 1. **Create a GitHub OAuth app**: same as for local, go to [your Developer Settings](https://github.com/settings/developers) and [create a New OAuth App](https://github.com/settings/applications/new) (or alternatively create one for one of your organizations) with the following settings:
-    - **Application name**: `Pages CMS`
-    - **Homepage URL**: `https://pagescms.org`
-    - **Authorization callback URL**: `https://pages-cms-123.pages.dev/auth/callback` (replace `https://pages-cms-123.pages.dev` with whatever URL Cloudflare generated for you, or the custom domain you set up)
+   - **Application name**: `Pages CMS`
+   - **Homepage URL**: `https://pagescms.org`
+   - **Authorization callback URL**: `https://pages-cms-123.pages.dev/auth/callback` (replace `https://pages-cms-123.pages.dev` with whatever URL Cloudflare generated for you, or the custom domain you set up)
 1. **Add the environment variables to Cloudflare**:
-    1. Go back to your Cloudflare Pages app, click on the `Settings` tab and select `Environment variables` in the sidebar.
-    1. Fill in `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` with the values you got from GitHub.
-    1. You will also need to set `BASE_URL` to the URL that was given to you when you create the Cloudflare Pages app (e.g.  `https://pages-cms-123.pages.dev`).
+   1. Go back to your Cloudflare Pages app, click on the `Settings` tab and select `Environment variables` in the sidebar.
+   1. Fill in `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` with the values you got from GitHub.
+   1. You will also need to set `BASE_URL` to the URL that was given to you when you create the Cloudflare Pages app (e.g. `https://pages-cms-123.pages.dev`).
 1. **Open the app link** (e.g. `https://pages-cms-123.pages.dev`).
 
 Cloudflare has very generous free tiers and can also host your actual website. It's a great alternative to GitHub Pages, Netlify or Vercel.
