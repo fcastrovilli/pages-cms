@@ -260,24 +260,18 @@ const displayDescription = computed(() => {
 const validationErrors = ref([]);
 
 const updateValidation = () => {
-  console.log('Running validation...');
   // Skip validation if model is null
   if (model.value === null) {
-    console.log('Model is null, skipping validation');
     validationErrors.value = [];
     return;
   }
   
   // Run validation with field refs if available
   const errors = fieldRefs.value.length > 0 ? validateFields() : [];
-  console.log('Validation errors:', errors);
   validationErrors.value = errors;
 };
 
 const canSave = computed(() => {
-  console.log('Checking canSave...');
-  console.log('isModelChanged:', isModelChanged.value);
-  console.log('validationErrors:', validationErrors.value);
   // Only allow saving if model has changed and there are no validation errors
   return isModelChanged.value && validationErrors.value.length === 0;
 });
@@ -363,16 +357,6 @@ const setEditor = async () => {
       // Parse the content into an object
       contentObject = serialization.parse(content, { format: mode.value, delimiters: schema.value.delimiters });
     } catch (error) {
-      console.error('Error parsing frontmatter:', error);
-      const options = {
-        delay: 10000,
-        actions: [{
-          label: 'Review settings',
-          handler: () => router.push({ name: 'settings' }),
-          primary: true
-        }]
-      };
-      notifications.notify(`Failed to parse the file at "${props.path}", your settings may be wrong.`, 'error', options);
       // We can't parse the content, we switch to the raw editor.
       mode.value = 'raw';
     }
@@ -425,9 +409,6 @@ const validateFields = () => {
       errors = errors.concat(fieldErrors);
     }
   });
-
-  // Log validation results
-  console.log('Field validation results:', errors);
   
   status.value = '';
   return errors;
@@ -501,7 +482,6 @@ const save = async () => {
 };
 
 onMounted(async () => {
-  console.log('Editor mounted');
   await setEditor();
 });
 
@@ -535,8 +515,6 @@ watch(() => model.value, (newValue, oldValue) => {
 
 // Watch for changes in model to validate all fields
 watch(() => model.value, () => {
-  console.log('Model changed...');
-  // Always run validation when model changes
   nextTick(() => {
     updateValidation();
   });
@@ -544,7 +522,6 @@ watch(() => model.value, () => {
 
 // Watch for changes in fieldRefs to validate when they're ready
 watch(() => fieldRefs.value.length, () => {
-  console.log('Field refs changed:', fieldRefs.value.length);
   if (fieldRefs.value.length > 0) {
     nextTick(() => {
       updateValidation();
