@@ -1,5 +1,6 @@
 <template>
   <Draggable
+    v-if="props.field.list"
     class="grid grid-cols-4 gap-4 sm:grid-cols-5 xl:grid-cols-6"
     v-model="internalModelValue"
     :animation="100"
@@ -22,7 +23,7 @@
       </li>
     </template>
     <template #footer>
-      <li v-if="internalModelValue.length < (props.field.list ? ( props.field.list?.max ?? Infinity ) : 1)">
+      <li v-if="internalModelValue.length < (props.field.list.max ?? Infinity)">
         <button class="btn flex-col gap-y-2 aspect-square items-center justify-center w-full" @click="addImage()">
           <Icon name="ImagePlus" class="h-6 w-6 stroke-[1.5] shrink-0"/>
           Add image
@@ -30,6 +31,23 @@
       </li>
     </template>
   </Draggable>
+  <div v-else class="relative w-48">
+    <Image v-if="internalModelValue[0]" :path="internalModelValue[0]"/>
+    <div v-if="internalModelValue[0]" class="absolute bottom-0 right-0 z-10 flex p-2">
+      <button class="btn-icon-sm !border-r-0 !rounded-r-none relative group" @click="removeImage(0)">
+        <Icon name="Trash2" class="h-4 w-4 stroke-2 shrink-0"/>
+        <div class="tooltip-top">Remove image</div>
+      </button>
+      <button class="btn-icon-sm !rounded-l-none relative group" @click="changeImage(0)">
+        <Icon name="Pencil" class="h-4 w-4 stroke-2 shrink-0"/>
+        <div class="tooltip-top">Change image</div>
+      </button>
+    </div>
+    <button v-else class="btn flex-col gap-y-2 aspect-square items-center justify-center w-full" @click="addImage()">
+      <Icon name="ImagePlus" class="h-6 w-6 stroke-[1.5] shrink-0"/>
+      Add image
+    </button>
+  </div>
   <!-- File browser modal -->
   <Modal ref="selectImageModal" :componentClass="'modal-file-browser'">
     <template #header>Select an image</template>
@@ -44,7 +62,7 @@
           :filterByCategories="props.field.options?.extensions ? undefined : [ 'image' ]"
           :filterByExtensions="props.field.options?.extensions"
           :isSelectable="true"
-          :selected="activeImgIndex != null ? internalModelValue[activeImgIndex] : ''"
+          :selected="imageSelection"
           :selectMax="selectMax"
           @files-selected="imageSelection = $event"
           ref="fileBrowserComponent"
@@ -83,7 +101,6 @@ const repoStore = inject('repoStore', { owner: null, repo: null, branch: null, c
 const props = defineProps({
   field: Object,
   modelValue: [String, Array],
-  list: { type: Boolean, default: false },
   options: { type: Object, default: {} },
 });
 
@@ -92,34 +109,66 @@ const imageSelection = ref([]);
 const activeImgIndex = ref(null);
 const prefixInput = ref(props.field.options?.input ?? repoStore.config.object.media?.input ?? null);
 const prefixOutput = ref(props.field.options?.output ?? repoStore.config.object.media?.output ?? null);
+
 const selectMax = computed(() => {
-  if (props.field.list) {
-    if (props.field.list.max) {
-      if (activeImgIndex.value !== null) {
-        return props.field.list.max - internalModelValue.value.length + 1;
-      } else {
-        return props.field.list.max - internalModelValue.value.length;
-      }
-    } else {
-      return undefined;
-    }
+  // Always allow multiple selection in list mode, regardless of whether we're changing or adding
+  if (props.field.list === true) {
+    // If list is just true (no max specified), allow unlimited selection
+    return null;
+  } else if (typeof props.field.list === 'object' && props.field.list?.max) {
+    // If list has a max property, respect it
+    return props.field.list.max - internalModelValue.value.length + (activeImgIndex.value !== null ? 1 : 0);
   } else {
+    // Not a list, only allow single selection
     return 1;
   }
 });
+
 const selectImageModal = ref(null);
 const fileBrowserComponent = ref(null);
 
+const addImage = () => {
+  console.log('📸 Image Field addImage:', {
+    currentImages: internalModelValue.value,
+    activeImgIndex: activeImgIndex.value,
+    imageSelection: imageSelection.value
+  });
+  
+  // Keep showing current selection
+  imageSelection.value = [...internalModelValue.value];
+  activeImgIndex.value = null;
+  selectImageModal.value.openModal();
+};
+
+const changeImage = (index) => {
+  console.log('🔄 Image Field changeImage:', {
+    index,
+    currentImages: internalModelValue.value,
+    imageSelection: imageSelection.value
+  });
+  
+  // Keep showing current selection
+  imageSelection.value = [...internalModelValue.value];
+  activeImgIndex.value = index;
+  selectImageModal.value.openModal();
+};
+
 const confirmImageSelection = () => {
-  if (imageSelection.value.length > 0) {
-    const insertIndex = activeImgIndex.value !== null ? activeImgIndex.value : internalModelValue.value.length;
-    internalModelValue.value.splice(insertIndex, activeImgIndex.value !== null ? 1 : 0, ...imageSelection.value);
-    activeImgIndex.value = null;
-    imageSelection.value = [];
-    fileBrowserComponent.value.selectFile();
-  } else if (activeImgIndex.value !== null) {
-    internalModelValue.value.splice(activeImgIndex.value, 1);
+  console.log('✅ Image Field confirmImageSelection:', {
+    imageSelection: imageSelection.value,
+    activeImgIndex: activeImgIndex.value,
+    currentImages: internalModelValue.value
+  });
+  
+  if (props.field.list) {
+    // In list mode, just use the entire selection as is
+    internalModelValue.value = [...imageSelection.value];
+  } else {
+    // In single mode, just use the first selected image
+    internalModelValue.value = imageSelection.value.length > 0 ? [imageSelection.value[0]] : [];
   }
+  
+  activeImgIndex.value = null;
   selectImageModal.value.closeModal();
 };
 
@@ -127,35 +176,12 @@ const removeImage = (index) => {
   internalModelValue.value.splice(index, 1);
 };
 
-const changeImage = (index) => {
-  imageSelection.value = [ internalModelValue.value[index] ];
-  activeImgIndex.value = index;
-  if (fileBrowserComponent.value) {
-    // If the file browser is already mounted, we refresh its content
-    fileBrowserComponent.value.setContents();
-  }
-  selectImageModal.value.openModal();
-};
-
-const addImage = () => {
-  imageSelection.value = [];
-  activeImgIndex.value = null;
-  if (fileBrowserComponent.value) {
-    // If the file browser is already mounted, we refresh its content
-    fileBrowserComponent.value.setContents();
-  }
-  selectImageModal.value.openModal()
-};
-
 const setImages = () => {  
   if (props.modelValue) {
     // For simplicity, we internally deal with an array whether it's a list or not
-    internalModelValue.value = props.field.list ? props.modelValue : [ props.modelValue ];
-    internalModelValue.value = internalModelValue.value.filter(entry => sanitizeObject(entry));
-    internalModelValue.value.forEach((imagePath, index) => {
-      // For displaying images, we need the input value of the paths
-      internalModelValue.value[index] = githubImg.swapPrefix(imagePath, prefixOutput.value, prefixInput.value, true);
-    });
+    internalModelValue.value = Array.isArray(props.modelValue) ? [...props.modelValue] : [props.modelValue];
+  } else {
+    internalModelValue.value = [];
   }
 };
 
@@ -167,20 +193,25 @@ watch(() => props.modelValue, (newValue, oldValue) => {
   if (JSON.stringify(newValue) !== JSON.stringify(oldValue)) setImages();
 });
 
-watch(
-  internalModelValue,
-  (newValue) => {
-    if (newValue) {
-      // For saving the value, we swap the prefix from input to output
-      const modelValueOutput = newValue.map((path) => githubImg.swapPrefix(path, prefixInput.value, prefixOutput.value));
-      if (props.field.list) {
-        emit('update:modelValue', modelValueOutput);
-      } else {
-        emit('update:modelValue', modelValueOutput[0]);
-      }
-    }
-  },
-  { deep: true }
-);
+watch(imageSelection, (newSelection) => {
+  console.log('👀 Image Field imageSelection changed:', {
+    newSelection,
+    activeImgIndex: activeImgIndex.value,
+    currentImages: internalModelValue.value
+  });
+}, { deep: true });
 
+watch(internalModelValue, (newValue) => {
+  console.log('💾 Image Field internalModelValue changed:', {
+    newValue,
+    activeImgIndex: activeImgIndex.value,
+    imageSelection: imageSelection.value
+  });
+  
+  if (props.field.list) {
+    emit('update:modelValue', newValue);
+  } else {
+    emit('update:modelValue', newValue[0] || '');
+  }
+}, { deep: true });
 </script>

@@ -232,8 +232,8 @@ const props = defineProps({
     default: () => []
   },
   selectMax: {
-    type: Number,
-    default: 1
+    type: [Number, null],  // Allow null for unlimited selection
+    default: null
   }
 });
 
@@ -305,6 +305,12 @@ const handleDeleted = () => {
 const selectToggle = (item) => {
   if (!props.isSelectable || item.type === 'dir') return;
   
+  console.log('🔍 FileBrowser selectToggle:', {
+    selectMax: props.selectMax,
+    currentSelection: selectedFiles.value,
+    itemToToggle: item.name
+  });
+  
   // Construct the full path relative to the root
   const itemPath = path.value ? `${path.value}/${item.name}` : item.name;
   
@@ -321,14 +327,19 @@ const selectToggle = (item) => {
     if (props.selectMax === 1) {
       // Single select mode - replace selection
       newSelection = [itemPath];
-    } else if (props.selectMax != null && currentSelection.length >= props.selectMax) {
+    } else if (props.selectMax !== undefined && props.selectMax !== null && currentSelection.length >= props.selectMax) {
       // Multi-select with max - shift out oldest
       newSelection = [...currentSelection.slice(1), itemPath];
     } else {
-      // Multi-select without max
+      // Multi-select without max or not at max yet
       newSelection = [...currentSelection, itemPath];
     }
   }
+  
+  console.log('🔄 FileBrowser new selection:', {
+    newSelection,
+    willEmit: JSON.stringify(newSelection) !== JSON.stringify(currentSelection)
+  });
   
   // Only update and emit if selection actually changed
   if (JSON.stringify(newSelection) !== JSON.stringify(currentSelection)) {
@@ -339,6 +350,11 @@ const selectToggle = (item) => {
 
 // Watch for changes to the selected prop
 watch(() => props.selected, (newSelected) => {
+  console.log('👀 FileBrowser selected prop changed:', {
+    newSelected,
+    currentSelection: selectedFiles.value
+  });
+  
   if (!newSelected) {
     selectedFiles.value = [];
   } else if (Array.isArray(newSelected)) {
