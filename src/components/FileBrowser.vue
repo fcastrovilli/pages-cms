@@ -222,6 +222,10 @@ const props = defineProps({
   root: String,
   defaultPath: String,
   filterByExtensions: Array,
+  filterByCategories: {
+    type: Array,
+    default: () => []
+  },
   isSelectable: Boolean,
   selected: {
     type: [String, Array],
@@ -347,9 +351,12 @@ watch(() => props.selected, (newSelected) => {
 const filteredExtensions = computed(() => {
   if (props.filterByExtensions) {
     return props.filterByExtensions;
-  } else {
-    return [];
+  } else if (props.filterByCategories?.length) {
+    return props.filterByCategories.reduce((acc, category) => {
+      return acc.concat(extensionCategories[category] || []);
+    }, []);
   }
+  return [];
 });
 
 const filteredContents = computed(() => {
@@ -451,9 +458,9 @@ const goTo = (destination) => {
     destination = props.defaultPath || props.root;
   }
   if (props.root && !destination.startsWith(props.root)) {
-    router.replace({ query: { ...route.query, 'fb-path': props.root } });
-    console.warn(`You tried to access "${destination}" but the root is set to "${props.root}". Redirecting to "${props.root}".`);
-  } else if (destination !== path.value) {
+    destination = props.root;
+  }
+  if (destination !== path.value) {
     path.value = destination;
     router.push({ query: { ...route.query, 'fb-path': destination } });
   }
