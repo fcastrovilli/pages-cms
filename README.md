@@ -16,14 +16,48 @@ This fork of Pages CMS includes several enhancements and new features:
 
 The `file` field type allows you to manage file uploads in your content. Unlike the `image` field, it supports any file type and provides additional functionality for file management.
 
-Example configuration:
+##### Multiple Files Support
+
+There are two ways to handle multiple files:
+
+1. Using `multiple: true`:
+```yaml
+- name: attachments
+  type: file
+  options:
+    multiple: true  # Enable grid view for multiple files
+    extensions: [".pdf", ".doc", ".docx"]
+```
+This creates a grid view where you can:
+- Select multiple files at once
+- Manage files in a visual grid layout
+- All files are selected from the same directory
+- Files are stored as an array in the data structure
+
+2. Using `list: true`:
+```yaml
+- name: documents
+  type: file
+  list: true  # Enable list view with individual file fields
+  options:
+    extensions: [".pdf", ".doc"]
+```
+This creates a list of individual file fields that:
+- Can be reordered using drag and drop
+- Each file can be selected from different directories
+- Provides more control over individual files
+- Files are stored as list items that can be reordered
+
+Choose `multiple: true` when you need a simple way to manage a collection of related files in a grid view. Use `list: true` when you need more control over individual files and want the ability to reorder them.
+
+##### Example Configuration
 
 ```yaml
 - name: attachment
   label: Document Attachment
   type: file
   options:
-    multiple: true # Allow multiple files (optional, defaults to false)
+    multiple: true # Allow multiple files (optional)
     path: /documents # Custom upload path (optional)
     extensions: [".pdf", ".doc", ".docx"] # Limit file types (optional)
     input: /static/uploads # Input directory for files (optional)
