@@ -9,6 +9,7 @@ This fork of Pages CMS includes several enhancements and new features:
 - **Enhanced Image Handling**: Improved compatibility and support for image lists
 - **UI Improvements**: Fixed list and grid views for better user experience
 - **Field Validation**: Enhanced validation for files and images
+- **Collection Pagination**: Added pagination support for collection pages with configurable items per page
 
 ### New Features Documentation
 
@@ -85,6 +86,19 @@ Features:
 - Drag and drop support
 - File size display
 - Grid and list view options
+
+#### Collection Pagination
+
+The collection pages now include built-in pagination support to improve navigation and performance when dealing with large collections. The pagination system provides:
+
+- 10 items per page by default
+- Previous/Next navigation buttons
+- Current page and total pages indicator
+- Automatic page calculation based on collection size
+- Maintains search and sort settings while paginating
+- Responsive design that works on all screen sizes
+
+The pagination controls appear automatically when there are more items than the per-page limit, providing a seamless experience for both small and large collections.
 
 #### Media Path Configuration
 

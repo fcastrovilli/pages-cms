@@ -111,7 +111,7 @@
                 </td>
               </tr>
               <!-- Entry -->
-              <tr v-for="item in viewContents.files" :key="item.filename">
+              <tr v-for="item in paginatedFiles" :key="item.filename">
                 <td v-for="field in view.config.fields" :class="[ field == view.config.primary ? 'primary-field' : '', `field-type-${fieldsSchemas[field]?.type}` ]">
                   <template v-if="field == view.config.primary">
                     <router-link :to="{ name: 'edit', params: { name: name, path: item.path } }">
@@ -191,6 +191,28 @@
               <button class="btn-sm" @click="view.search = ''">Clear search terms</button>
             </div>
           </div>
+        </div>
+        <!-- Pagination controls -->
+        <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-4">
+          <button 
+            @click="view.currentPage = Math.max(1, view.currentPage - 1)"
+            :disabled="view.currentPage === 1"
+            class="btn-sm"
+          >
+            Previous
+          </button>
+          
+          <span class="text-sm">
+            Page {{ view.currentPage }} of {{ totalPages }}
+          </span>
+          
+          <button 
+            @click="view.currentPage = Math.min(totalPages, view.currentPage + 1)"
+            :disabled="view.currentPage === totalPages"
+            class="btn-sm"
+          >
+            Next
+          </button>
         </div>
       </div>
       <!-- Utils -->
@@ -314,11 +336,11 @@ const view = reactive({
     sort: [],
     filter: null,
   },
-  sort: null,
-  order: 'desc',
-  filter: null,
-  filter_value: null,
   search: '',
+  sort: null,
+  order: 'asc',
+  itemsPerPage: 10,
+  currentPage: 1
 });
 // Content actually displayed, taking into account search & sort
 // TODO: add validation of fields in config (sort, fields, etc.), both here and in the settings editor
@@ -375,6 +397,16 @@ const viewContents = computed(() => {
     files: viewFiles,
     folders: [...contents.value.folders],
   };
+});
+
+const totalPages = computed(() => {
+  return Math.ceil(viewContents.value.files.length / view.itemsPerPage);
+});
+
+const paginatedFiles = computed(() => {
+  const start = (view.currentPage - 1) * view.itemsPerPage;
+  const end = start + view.itemsPerPage;
+  return viewContents.value.files.slice(start, end);
 });
 
 function openRenameModal(item) {
