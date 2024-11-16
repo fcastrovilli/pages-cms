@@ -98,19 +98,14 @@
                        class="fb-files-item-checkbox"
                        @click.stop
                        @change="selectToggle(item)"/>
-                <div class="fb-files-item-preview" @click="selectToggle(item)">
-                  <div v-if="item.kind == 'image'" class="fb-files-item-image">
-                    <Image :path="item.path"/>
-                  </div>
-                  <div v-else class="fb-files-item-icon">
-                    <Icon name="File" width="100%" height="100%"/>
-                  </div>
-                  <div class="fb-files-item-name">{{ item.name }}</div>
-                  <div class="fb-files-item-meta">
-                    <div class="fb-files-item-meta-size">{{ $filters.fileSize(item.size) }}</div>
-                  </div>
+                <div v-if="item.kind == 'image'" class="fb-files-item-image">
+                  <Image :path="item.path"/>
                 </div>
-                <!-- Options -->
+                <div v-else class="fb-files-item-icon">
+                  <Icon name="File" width="100%" height="100%"/>
+                </div>
+                <div class="fb-files-item-name">{{ item.name }}</div>
+                <div class="fb-files-item-meta">{{ $filters.fileSize(item.size) }}</div>
                 <div class="fb-files-item-options">
                   <Dropdown :dropdownClass="'!max-w-none w-48'">
                     <template #trigger>

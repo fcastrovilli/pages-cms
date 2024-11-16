@@ -27,7 +27,7 @@
 }
 
 .fb-files.fb-files-list .fb-files-item-content {
-  @apply flex gap-x-2 items-center rounded-xl py-2 px-3 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-850 relative w-full;
+  @apply flex items-center gap-x-3 py-2.5 px-3 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-850 relative w-full;
 }
 
 .adjust-dark .fb-files.fb-files-list .fb-files-item-content {
@@ -35,31 +35,31 @@
 }
 
 .fb-files.fb-files-list .fb-files-item-icon {
-  @apply w-4 h-4 stroke-2 shrink-0;
+  @apply w-5 h-5 stroke-[1.5] shrink-0 text-neutral-400 dark:text-neutral-500;
+}
+
+.fb-files.fb-files-list .fb-files-item-image {
+  @apply w-6 h-6 shrink-0;
 }
 
 .fb-files.fb-files-list .fb-files-item-image > div {
-  @apply w-4 h-4 !rounded-sm;
+  @apply w-full h-full !rounded-md;
 }
 
 .fb-files.fb-files-list .fb-files-item-name {
-  @apply font-medium truncate;
+  @apply font-medium text-sm truncate flex-1;
 }
 
 .fb-files.fb-files-list .fb-files-item-meta {
-  @apply text-neutral-400 dark:text-neutral-500 text-sm ml-auto flex gap-x-2 items-center whitespace-nowrap;
+  @apply text-neutral-400 dark:text-neutral-500 text-sm whitespace-nowrap shrink-0;
 }
 
 .fb-files.fb-files-list .fb-files-item-options {
-  @apply flex items-center;
+  @apply flex items-center ml-3 shrink-0;
 }
 
-.fb-files.fb-files-list .fb-files-item-options > div {
-  @apply block;
-}
-
-.fb-files.fb-files-list .fb-files-item-options .fb-files-item-options-btn {
-  @apply block py-1 px-2 -m-1;
+.fb-files.fb-files-list .fb-files-item-options-btn {
+  @apply block p-2 -m-2 text-neutral-400 dark:text-neutral-500 hover:text-neutral-950 dark:hover:text-white transition-colors;
 }
 
 /* File browser: grid layout */
