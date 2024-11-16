@@ -1,5 +1,16 @@
 # Pages CMS
 
+## Recent Changes and Improvements
+
+This fork of Pages CMS includes several enhancements and new features:
+
+- **WebP Image Support**: Automatic conversion of uploaded images to WebP format for better performance
+- **Files Field**: New field type for handling file uploads and management
+- **Enhanced Image Handling**: Improved compatibility and support for image lists
+- **UI Improvements**: Fixed list and grid views for better user experience
+- **Field Validation**: Enhanced validation for files and images
+- **Performance**: Various optimizations and removal of unnecessary logging
+
 [Pages CMS](https://pagescms.org) is an Open Source Content Management System built for static websites (Jekyll, Next.js, VuePress, Hugo, etc).
 
 It allows you to edit your website's content directly on GitHub via a user-friendly interface.
