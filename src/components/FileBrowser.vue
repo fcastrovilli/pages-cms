@@ -203,7 +203,7 @@ import Upload from '@/components/file/Upload.vue';
 
 // Categories for filtering
 const extensionCategories = {
-  image: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'tif', 'tiff'],
+  image: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'tif', 'tiff', 'webp'],
   document: ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'vxls', 'xlsx', 'txt', 'rtf'],
   video: ['mp4', 'avi', 'mov', 'wmv', 'flv'],
   audio: ['mp3', 'wav', 'aac', 'ogg', 'flac'],
