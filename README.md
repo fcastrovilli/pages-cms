@@ -1,4 +1,4 @@
-# Pages CMS
+# Pages CMS - Fork
 
 ## Recent Changes and Improvements
 
@@ -23,16 +23,17 @@ Example configuration:
   label: Document Attachment
   type: file
   options:
-    multiple: true     # Allow multiple files (optional, defaults to false)
-    path: /documents   # Custom upload path (optional)
-    extensions: [".pdf", ".doc", ".docx"]  # Limit file types (optional)
-    input: /static/uploads  # Input directory for files (optional)
-    output: /uploads     # Public URL path prefix (optional)
-    list: true          # Use list view instead of grid (optional)
-    required: true      # Make the field required (optional)
+    multiple: true # Allow multiple files (optional, defaults to false)
+    path: /documents # Custom upload path (optional)
+    extensions: [".pdf", ".doc", ".docx"] # Limit file types (optional)
+    input: /static/uploads # Input directory for files (optional)
+    output: /uploads # Public URL path prefix (optional)
+    list: true # Use list view instead of grid (optional)
+    required: true # Make the field required (optional)
 ```
 
 Available Options:
+
 - `multiple`: Boolean, allows multiple file uploads (default: false)
 - `path`: String, custom upload directory path relative to media folder
 - `extensions`: Array, limit file types (optional)
@@ -42,6 +43,7 @@ Available Options:
 - `required`: Boolean, make the field required (default: false)
 
 Features:
+
 - Supports any file type
 - Single or multiple file uploads
 - Custom upload paths
@@ -56,22 +58,24 @@ This fork includes enhanced media settings for image optimization. Configure the
 
 ```yaml
 media:
-  folder: static/uploads    # Base media folder
-  public_folder: /uploads   # Public URL path
+  folder: static/uploads # Base media folder
+  public_folder: /uploads # Public URL path
   optimize:
-    enabled: true          # Enable image optimization
-    maxWidth: 1920        # Maximum image width
-    maxHeight: 1080       # Maximum image height
-    quality: 0.85        # WebP quality (0-1)
+    enabled: true # Enable image optimization
+    maxWidth: 1920 # Maximum image width
+    maxHeight: 1080 # Maximum image height
+    quality: 0.85 # WebP quality (0-1)
 ```
 
 The image optimization settings are applied during upload and will:
+
 - Automatically convert images to WebP format
 - Resize images while maintaining aspect ratio
 - Optimize quality for web use
 - Preserve original filenames with .webp extension
 
 Available Image Options:
+
 - `enabled`: Boolean, enable image optimization (default: true)
 - `maxWidth`: Number, maximum image width
 - `maxHeight`: Number, maximum image height
@@ -95,6 +99,10 @@ Example configuration:
     format: DD/MM/YYYY
     time: true
 ```
+
+---
+
+# Pages CMS - Original Readme
 
 [Pages CMS](https://pagescms.org) is an Open Source Content Management System built for static websites (Jekyll, Next.js, VuePress, Hugo, etc).
 
