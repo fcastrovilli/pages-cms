@@ -8,9 +8,29 @@ export async function onRequest(context) {
   try {
     const formData = await request.formData();
     const file = formData.get('image');
+    const configStr = formData.get('config');
     
     if (!file) {
       return new Response('No image provided', { status: 400 });
+    }
+
+    // Parse config if provided, otherwise use defaults
+    const config = configStr ? JSON.parse(configStr) : {};
+    const optimize = config?.media?.optimize || {
+      enabled: true,
+      maxWidth: 1920,
+      maxHeight: 1080,
+      quality: 0.85
+    };
+
+    // If optimization is disabled, return original file
+    if (!optimize.enabled) {
+      return new Response(file, {
+        headers: {
+          'Content-Type': file.type,
+          'Content-Disposition': `attachment; filename="${file.name}"`,
+        },
+      });
     }
 
     // Process the image
@@ -19,18 +39,16 @@ export async function onRequest(context) {
     const imageBitmap = await createImageBitmap(imageBlob);
 
     // Set maximum dimensions while maintaining aspect ratio
-    const MAX_WIDTH = 1920;
-    const MAX_HEIGHT = 1080;
     let width = imageBitmap.width;
     let height = imageBitmap.height;
 
-    if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-      if (width / height > MAX_WIDTH / MAX_HEIGHT) {
-        height = Math.round((height * MAX_WIDTH) / width);
-        width = MAX_WIDTH;
+    if (width > optimize.maxWidth || height > optimize.maxHeight) {
+      if (width / height > optimize.maxWidth / optimize.maxHeight) {
+        height = Math.round((height * optimize.maxWidth) / width);
+        width = optimize.maxWidth;
       } else {
-        width = Math.round((width * MAX_HEIGHT) / height);
-        height = MAX_HEIGHT;
+        width = Math.round((width * optimize.maxHeight) / height);
+        height = optimize.maxHeight;
       }
     }
 
@@ -42,7 +60,7 @@ export async function onRequest(context) {
     // Convert to WebP with compression
     const webpBlob = await canvas.convertToBlob({
       type: 'image/webp',
-      quality: 0.85
+      quality: optimize.quality
     });
 
     // Generate unique filename

@@ -41,6 +41,40 @@ const validationSchema = {
               "errorMessage": "Invalid category value. Allowed values are: image, document, video, audio, compressed."
             },
             "errorMessage": "Property 'categories' must be an array of predefined category strings."
+          },
+          "optimize": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              },
+              "maxWidth": {
+                "type": "integer",
+                "minimum": 100,
+                "maximum": 8192,
+                "default": 1920
+              },
+              "maxHeight": {
+                "type": "integer",
+                "minimum": 100,
+                "maximum": 8192,
+                "default": 1080
+              },
+              "quality": {
+                "type": "number",
+                "minimum": 0.1,
+                "maximum": 1.0,
+                "default": 0.85
+              }
+            },
+            "additionalProperties": false,
+            "default": {
+              "enabled": true,
+              "maxWidth": 1920,
+              "maxHeight": 1080,
+              "quality": 0.85
+            }
           }
         },
         "additionalProperties": false,

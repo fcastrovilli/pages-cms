@@ -18,6 +18,10 @@ const props = defineProps({
   repo: String,
   branch: String,
   path: String,
+  config: {
+    type: Object,
+    default: () => ({})
+  }
 });
 
 const fileInput = ref(null);
@@ -42,6 +46,19 @@ async function processFiles(files) {
 }
 
 async function processImage(file) {
+  // Get optimization settings from config
+  const optimize = props.config?.media?.optimize || {
+    enabled: true,
+    maxWidth: 1920,
+    maxHeight: 1080,
+    quality: 0.85
+  };
+
+  // If optimization is disabled, return original file
+  if (!optimize.enabled) {
+    return file;
+  }
+
   // Create an image element
   const img = document.createElement('img');
   const imageUrl = URL.createObjectURL(file);
@@ -50,18 +67,16 @@ async function processImage(file) {
     img.onload = async () => {
       try {
         // Calculate new dimensions
-        const MAX_WIDTH = 1920;
-        const MAX_HEIGHT = 1080;
         let width = img.width;
         let height = img.height;
 
-        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-          if (width / height > MAX_WIDTH / MAX_HEIGHT) {
-            height = Math.round((height * MAX_WIDTH) / width);
-            width = MAX_WIDTH;
+        if (width > optimize.maxWidth || height > optimize.maxHeight) {
+          if (width / height > optimize.maxWidth / optimize.maxHeight) {
+            height = Math.round((height * optimize.maxWidth) / width);
+            width = optimize.maxWidth;
           } else {
-            width = Math.round((width * MAX_HEIGHT) / height);
-            height = MAX_HEIGHT;
+            width = Math.round((width * optimize.maxHeight) / height);
+            height = optimize.maxHeight;
           }
         }
 
@@ -75,7 +90,7 @@ async function processImage(file) {
         ctx.drawImage(img, 0, 0, width, height);
         
         // Convert to WebP
-        const webpData = canvas.toDataURL('image/webp', 0.85);
+        const webpData = canvas.toDataURL('image/webp', optimize.quality);
         
         // Convert base64 to Blob
         const byteString = atob(webpData.split(',')[1]);

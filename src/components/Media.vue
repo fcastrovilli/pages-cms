@@ -12,14 +12,24 @@
         :defaultPath="config.media.default"
         :filterByExtensions="config.media.extensions"
         :filterByCategories="config.media.categories"
-        :hasBreadcrumb="true"
+      />
+      <Upload
+        ref="uploadComponent"
+        :owner="owner"
+        :repo="repo"
+        :branch="branch"
+        :path="path"
+        :config="config"
+        @processed="handleUploaded"
       />
     </div>
   </main>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import FileBrowser from '@/components/FileBrowser.vue';
+import Upload from '@/components/file/Upload.vue';
 
 const props = defineProps({
   config: {
@@ -30,4 +40,10 @@ const props = defineProps({
   repo: { type: String },
   branch: { type: String }
 });
+
+const path = ref(''); // Assuming path is a ref, you might need to adjust this based on your actual code
+
+function handleUploaded() {
+  // You might need to implement this function based on your actual code
+}
 </script>
