@@ -1,5 +1,6 @@
 <template>
   <Draggable
+    v-if="props.field.list"
     class="grid grid-cols-4 gap-4 sm:grid-cols-5 xl:grid-cols-6"
     v-model="internalModelValue"
     :animation="100"
@@ -39,6 +40,36 @@
       </li>
     </template>
   </Draggable>
+  <div v-else class="relative w-48">
+    <FilePreview v-if="internalModelValue[0]" :path="internalModelValue[0]" />
+    <div
+      v-if="internalModelValue[0]"
+      class="absolute bottom-0 right-0 z-10 flex p-2"
+    >
+      <button
+        class="btn-icon-sm !border-r-0 !rounded-r-none relative group"
+        @click="removeFile(0)"
+      >
+        <Icon name="Trash2" class="h-4 w-4 stroke-2 shrink-0" />
+        <div class="tooltip-top">Remove file</div>
+      </button>
+      <button
+        class="btn-icon-sm !rounded-l-none relative group"
+        @click="changeFile()"
+      >
+        <Icon name="Pencil" class="h-4 w-4 stroke-2 shrink-0" />
+        <div class="tooltip-top">Change file</div>
+      </button>
+    </div>
+    <button
+      v-else
+      class="btn flex-col gap-y-2 aspect-square items-center justify-center w-full"
+      @click="addFile()"
+    >
+      <Icon name="FilePlus" class="h-6 w-6 stroke-[1.5] shrink-0" />
+      Add file
+    </button>
+  </div>
   <!-- File browser modal -->
   <Modal ref="selectFileModal" :componentClass="'modal-file-browser'">
     <template #header>Select a file</template>

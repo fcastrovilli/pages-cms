@@ -1,5 +1,5 @@
 <template>
-  <div class="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+  <div class="relative w-full pb-[100%] bg-gray-100 rounded-lg overflow-hidden">
     <div v-if="loading" class="absolute inset-0 flex items-center justify-center">
       <div class="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-primary"></div>
     </div>
