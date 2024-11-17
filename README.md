@@ -230,6 +230,98 @@ Available Image Options:
 - `maxHeight`: Number, maximum image height
 - `quality`: Number, WebP quality (0-1)
 
+#### Grid Layout System
+
+The CMS includes a powerful grid layout system that allows you to control how fields are positioned and sized in the editor interface. The grid system is based on a 12-column layout and provides intuitive width options.
+
+##### Basic Grid Configuration
+
+Each field can have an optional `layout` property that controls its positioning:
+
+```yaml
+fields:
+  - name: title
+    label: 'Title'
+    type: string
+    layout:
+      width: '1/2'  # Takes up half the width
+  - name: subtitle
+    label: 'Subtitle'
+    type: string
+    layout:
+      width: '1/2'
+      column: 6    # Starts at column 6 (optional)
+```
+
+##### Available Width Options
+
+- `1/1`: Full width (12 columns)
+- `1/2`: Half width (6 columns)
+- `1/3`: One-third width (4 columns)
+- `2/3`: Two-thirds width (8 columns)
+- `1/4`: Quarter width (3 columns)
+- `3/4`: Three-quarters width (9 columns)
+
+##### Layout Properties
+
+The `layout` object supports these properties:
+
+- `width`: Required. One of the predefined width options
+- `column`: Optional. Starting column (0-11)
+- `row`: Optional. Row number for explicit positioning
+
+##### Default Behavior
+
+Fields without a layout configuration will:
+- Take up full width (`1/1`)
+- Be centered in the grid
+- Stack naturally in the document flow
+
+This is useful for:
+- Complex fields that need more space (file uploads, rich text)
+- Fields that should stand out from the grid layout
+- Quick prototyping before finalizing the layout
+
+##### Example Complex Layout
+
+```yaml
+fields:
+  - name: title
+    type: string
+    layout:
+      width: '2/3'  # Takes up 8 columns
+  - name: category
+    type: string
+    layout:
+      width: '1/3'  # Takes up 4 columns
+  - name: description
+    type: text
+    layout:
+      width: '1/1'  # Full width
+  - name: images
+    type: image
+    list: true      # No layout - will be full width and centered
+  - name: details
+    type: grid      # Nested grid
+    fields:
+      - name: date
+        type: date
+        layout:
+          width: '1/2'
+      - name: author
+        type: string
+        layout:
+          width: '1/2'
+```
+
+##### Grid Layout Best Practices
+
+1. **Consistent Widths**: Try to use consistent width patterns (e.g., all `1/2` or all `1/3`) for a cleaner look
+2. **Full Width for Complex Fields**: Leave complex fields (file uploads, rich text) without layout for better usability
+3. **Logical Grouping**: Use width and positioning to group related fields together
+4. **Responsive Design**: The grid system is responsive and will adjust for different screen sizes
+5. **Optional Positioning**: Only use explicit `column` and `row` when specific positioning is required
+
 #### Important Note About Date Fields
 
 The official documentation for the date field at pagescms.org contains some inaccuracies. The date field in this fork uses Moment.js instead of date-fns, which means:

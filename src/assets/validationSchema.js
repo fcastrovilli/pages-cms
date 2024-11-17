@@ -290,31 +290,104 @@ const validationSchema = {
           "errorMessage": "Property 'name' must be alphanumeric with dashes and underscores."
         },
         "label": {
-          "type": ["string", "boolean"],
-          "if": {
-            "type": "string"
+          "type": "string",
+          "errorMessage": "Property 'label' must be a string."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["string", "text", "number", "boolean", "date", "select", "object", "image", "file", "grid", "markdown"],
+          "errorMessage": "Property 'type' must be one of the supported field types."
+        },
+        "required": {
+          "type": "boolean",
+          "errorMessage": "Property 'required' must be a boolean."
+        },
+        "layout": {
+          "type": "object",
+          "properties": {
+            "width": {
+              "type": "string",
+              "enum": ["1/1", "1/2", "1/3", "2/3", "1/4", "3/4"],
+              "errorMessage": "Width must be one of: 1/1, 1/2, 1/3, 2/3, 1/4, 3/4"
+            },
+            "column": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 11,
+              "errorMessage": "Column must be between 0 and 11"
+            },
+            "row": {
+              "type": "integer",
+              "minimum": 0,
+              "errorMessage": "Row must be a non-negative integer"
+            }
           },
-          "then": {
-            "type": "string",
-            "errorMessage": "Property 'label' should be a string to display a label above the field."
-          },
-          "else": {
-            "type": "boolean",
-            "enum": [false],
-            "errorMessage": "If not a string, property 'label' can only be 'false' to indicate absence of label."
-          },
+          "required": ["width"],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": { "width": { "const": "1/1" } }
+              },
+              "then": {
+                "properties": { "column": { "const": 0 } }
+              }
+            },
+            {
+              "if": {
+                "properties": { "width": { "const": "1/2" } }
+              },
+              "then": {
+                "properties": { "column": { "enum": [0, 3, 6, 9] } }
+              }
+            },
+            {
+              "if": {
+                "properties": { "width": { "const": "1/3" } }
+              },
+              "then": {
+                "properties": { "column": { "enum": [0, 4, 8] } }
+              }
+            },
+            {
+              "if": {
+                "properties": { "width": { "const": "2/3" } }
+              },
+              "then": {
+                "properties": { "column": { "enum": [0, 4] } }
+              }
+            },
+            {
+              "if": {
+                "properties": { "width": { "const": "1/4" } }
+              },
+              "then": {
+                "properties": { "column": { "enum": [0, 3, 6, 9] } }
+              }
+            },
+            {
+              "if": {
+                "properties": { "width": { "const": "3/4" } }
+              },
+              "then": {
+                "properties": { "column": { "enum": [0, 3] } }
+              }
+            }
+          ],
           "errorMessage": {
-            "type": "Property 'label' can be either `false` or a string."
+            "required": {
+              "width": "Layout must specify a width"
+            },
+            "properties": {
+              "width": "Invalid width value",
+              "column": "Invalid column position for the specified width",
+              "row": "Invalid row position"
+            }
           }
         },
         "description": {
           "type": ["string", "null"],
           "errorMessage": "Property 'description' must be a string if specified."
-        },
-        "type": {
-          "type": "string",
-          "enum": ["boolean", "code", "date", "file", "image", "number", "object", "rich-text", "select", "string", "text"],
-          "errorMessage": "Property 'type' must be one of the valid field types (see documentation)."
         },
         "default": {
           "type": ["null", "boolean", "number", "string", "object", "array"],
@@ -344,18 +417,11 @@ const validationSchema = {
           "else": {
             "type": "boolean",
             "errorMessage": "Property 'list' can be a boolean; 'true' for an array of values, 'false' for a single value."
-          },
-          "errorMessage": {
-            "type": "Property 'list' must be either a boolean or an object with 'min' and 'max' properties."
           }
         },
         "hidden": {
           "type": ["boolean", "null"],
           "errorMessage": "Property 'hidden' must be a boolean value if specified."
-        },
-        "required": {
-          "type": ["boolean", "null"],
-          "errorMessage": "Property 'required' must be a boolean value if specified."
         },
         "pattern": {
           "type": ["object", "string"],
@@ -385,9 +451,6 @@ const validationSchema = {
           "else": {
             "type": "string",
             "errorMessage": "Property 'pattern' must be a valid regex string if specified."
-          },
-          "errorMessage": {
-            "type": "Property 'pattern' must be a string (regex) or an object with a 'regex' and an optional 'message' properties."
           }
         },
         "options": {

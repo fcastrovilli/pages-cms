@@ -1,74 +1,84 @@
 <template>
-  <Draggable
-    v-if="props.field.list"
-    class="grid grid-cols-4 gap-4 sm:grid-cols-5 xl:grid-cols-6"
-    v-model="internalModelValue"
-    :animation="100"
-    :item-key="'index'"
-    tag="ul"
-  >
-    <template #item="{ element, index }">
-      <li v-if="element" class="relative w-full cursor-move">
-        <FilePreview :path="element" />
-        <div class="absolute bottom-0 right-0 z-10 flex p-2">
+  <div class="file-field w-full">
+    <Draggable
+      v-if="props.field.list"
+      class="grid auto-rows-fr gap-2 sm:gap-3"
+      :class="{
+        'grid-cols-1': $parent?.width === '1/3' || $parent?.width === '1/4',
+        'grid-cols-2': $parent?.width === '1/2' || $parent?.width === '2/3',
+        'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4': $parent?.width === '1/1' || !$parent?.width
+      }"
+      v-model="internalModelValue"
+      :animation="100"
+      :item-key="'index'"
+      tag="ul"
+    >
+      <template #item="{ element, index }">
+        <li v-if="element" class="relative w-full cursor-move">
+          <div class="aspect-square w-full">
+            <FilePreview :path="element" class="h-full w-full rounded-lg" />
+          </div>
+          <div class="absolute bottom-0 right-0 z-10 flex p-1.5 sm:p-2">
+            <button
+              class="btn-icon-xs sm:btn-icon-sm !border-r-0 !rounded-r-none relative group"
+              @click="removeFile(index)"
+            >
+              <Icon name="Trash2" class="h-3 w-3 sm:h-4 sm:w-4 stroke-2 shrink-0" />
+              <div class="tooltip-top">Remove file</div>
+            </button>
+            <button
+              class="btn-icon-xs sm:btn-icon-sm !rounded-l-none relative group"
+              @click="changeFile()"
+            >
+              <Icon name="Pencil" class="h-3 w-3 sm:h-4 sm:w-4 stroke-2 shrink-0" />
+              <div class="tooltip-top">Change file</div>
+            </button>
+          </div>
+        </li>
+      </template>
+      <template #footer>
+        <li v-if="internalModelValue.length < maxFiles">
           <button
-            class="btn-icon-sm !border-r-0 !rounded-r-none relative group"
-            @click="removeFile(index)"
+            class="btn flex-col gap-y-1.5 sm:gap-y-2 aspect-square items-center justify-center w-full min-w-[120px] min-h-[120px] text-sm sm:text-base"
+            @click="addFile()"
           >
-            <Icon name="Trash2" class="h-4 w-4 stroke-2 shrink-0" />
+            <Icon name="FilePlus" class="h-5 w-5 sm:h-6 sm:w-6 stroke-[1.5] shrink-0" />
+            Add file
+          </button>
+        </li>
+      </template>
+    </Draggable>
+    <div v-else class="w-full">
+      <div v-if="internalModelValue[0]" class="relative">
+        <div class="aspect-square w-full max-w-md">
+          <FilePreview :path="internalModelValue[0]" class="h-full w-full rounded-lg" />
+        </div>
+        <div class="absolute bottom-0 right-0 z-10 flex p-1.5 sm:p-2">
+          <button
+            class="btn-icon-xs sm:btn-icon-sm !border-r-0 !rounded-r-none relative group"
+            @click="removeFile(0)"
+          >
+            <Icon name="Trash2" class="h-3 w-3 sm:h-4 sm:w-4 stroke-2 shrink-0" />
             <div class="tooltip-top">Remove file</div>
           </button>
           <button
-            class="btn-icon-sm !rounded-l-none relative group"
+            class="btn-icon-xs sm:btn-icon-sm !rounded-l-none relative group"
             @click="changeFile()"
           >
-            <Icon name="Pencil" class="h-4 w-4 stroke-2 shrink-0" />
+            <Icon name="Pencil" class="h-3 w-3 sm:h-4 sm:w-4 stroke-2 shrink-0" />
             <div class="tooltip-top">Change file</div>
           </button>
         </div>
-      </li>
-    </template>
-    <template #footer>
-      <li v-if="internalModelValue.length < maxFiles">
-        <button
-          class="btn flex-col gap-y-2 aspect-square items-center justify-center w-full"
-          @click="addFile()"
-        >
-          <Icon name="FilePlus" class="h-6 w-6 stroke-[1.5] shrink-0" />
-          Add file
-        </button>
-      </li>
-    </template>
-  </Draggable>
-  <div v-else class="relative w-48">
-    <FilePreview v-if="internalModelValue[0]" :path="internalModelValue[0]" />
-    <div
-      v-if="internalModelValue[0]"
-      class="absolute bottom-0 right-0 z-10 flex p-2"
-    >
+      </div>
       <button
-        class="btn-icon-sm !border-r-0 !rounded-r-none relative group"
-        @click="removeFile(0)"
+        v-else
+        class="btn flex-col gap-y-1.5 sm:gap-y-2 aspect-square items-center justify-center w-full min-w-[120px] min-h-[120px] max-w-md text-sm sm:text-base"
+        @click="addFile()"
       >
-        <Icon name="Trash2" class="h-4 w-4 stroke-2 shrink-0" />
-        <div class="tooltip-top">Remove file</div>
-      </button>
-      <button
-        class="btn-icon-sm !rounded-l-none relative group"
-        @click="changeFile()"
-      >
-        <Icon name="Pencil" class="h-4 w-4 stroke-2 shrink-0" />
-        <div class="tooltip-top">Change file</div>
+        <Icon name="FilePlus" class="h-5 w-5 sm:h-6 sm:w-6 stroke-[1.5] shrink-0" />
+        Add file
       </button>
     </div>
-    <button
-      v-else
-      class="btn flex-col gap-y-2 aspect-square items-center justify-center w-full"
-      @click="addFile()"
-    >
-      <Icon name="FilePlus" class="h-6 w-6 stroke-[1.5] shrink-0" />
-      Add file
-    </button>
   </div>
   <!-- File browser modal -->
   <Modal ref="selectFileModal" :componentClass="'modal-file-browser'">

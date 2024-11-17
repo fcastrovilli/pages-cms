@@ -13,7 +13,10 @@ export default function useSchema() {
   const createModel = (fields, content = {}) => {
     let model = {};
     for (const field of fields) {
-      if (field.list) {
+      if (field.type === 'grid') {
+        // For grid fields, create a nested object with all child field values
+        model[field.name] = createModel(field.fields, content[field.name] || {});
+      } else if (field.list) {
         const listContent = Array.isArray(content[field.name]) ? content[field.name] : [];
         model[field.name] = listContent.length > 0
           ? listContent.map(item => field.type === 'object' ? createModel(field.fields, item) : item)
@@ -40,12 +43,14 @@ export default function useSchema() {
     return model;
   };
   
-  // Returns the default feld value based on its value and type
+  // Returns the default field value based on its value and type
   const getDefaultValue = (field) => {
     if (field.default !== undefined) {
       return field.default;
     }
     switch (field.type) {
+      case 'grid':
+        return createModel(field.fields, {});
       case 'object':
         return createModel(field.fields, {});
       case 'boolean':

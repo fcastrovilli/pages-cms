@@ -1,5 +1,5 @@
 <template>
-  <div v-if="model && !field.hidden" class="field" :class="`field-type-${field.type}`">
+  <div v-if="model && !field.hidden" class="field" :class="[`field-type-${field.type}`, getLayoutClasses()]">
     <div class="flex gap-x-2 items-center mb-2" v-if="field.label !== false">
       <label class="font-medium">{{ field.label || field.name }}</label>
       <div v-if="field.required" class="chip-secondary text-sm">Required</div>
@@ -125,6 +125,44 @@ const validate = () => {
   if (listErrors.value.length) allErrors = allErrors.concat(listErrors.value);
 
   return allErrors;
+};
+
+const getLayoutClasses = () => {
+  const classes = ['transition-all'];
+  
+  if (props.field.layout) {
+    // Handle width classes
+    switch (props.field.layout.width) {
+      case '1/1':
+        classes.push('col-span-12');
+        break;
+      case '1/2':
+        classes.push('col-span-6');
+        break;
+      case '1/3':
+        classes.push('col-span-4');
+        break;
+      case '2/3':
+        classes.push('col-span-8');
+        break;
+      case '1/4':
+        classes.push('col-span-3');
+        break;
+      case '3/4':
+        classes.push('col-span-9');
+        break;
+      default:
+        classes.push('col-span-12');
+    }
+
+    // Handle grid positioning if specified
+    if (typeof props.field.layout.row === 'number' && typeof props.field.layout.column === 'number') {
+      classes.push(`row-start-${props.field.layout.row + 1}`);
+      classes.push(`col-start-${props.field.layout.column + 1}`);
+    }
+  }
+
+  return classes.join(' ');
 };
 
 defineExpose({ validate });

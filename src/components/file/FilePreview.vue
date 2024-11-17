@@ -5,7 +5,11 @@
     </div>
     <div v-else class="absolute inset-0">
       <template v-if="isImage">
-        <div class="w-full h-full bg-cover bg-center" :style="{ 'background-image': `url('${imageUrl}')` }" :title="fileName"></div>
+        <div 
+          class="w-full h-full bg-center bg-cover" 
+          :style="{ backgroundImage: `url('${imageUrl}')` }" 
+          :title="fileName"
+        ></div>
       </template>
       <template v-else>
         <div class="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-gray-50">
